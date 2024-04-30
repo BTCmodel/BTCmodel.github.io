@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>联合挖矿模型计算工具</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #121212;
+            color: #f0b90b;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+        .container {
+            width: 45%;
+            margin: 20px;
+            padding: 20px;
+            background: #262626;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+            position: relative;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 10px;
+            color: #f0b90b;
+            font-size: 16px;
+        }
+        input, select {
+            width: 100%;
+            padding: 8px;
+            font-size: 16px;
+            border: 1px solid #00f2fe;
+            background: #000000;
+            border-radius: 4px;
+            color: #f0b90b;
+            transition: border-color 0.3s, box-shadow 0.3s, transform 0.2s;
+        }
+        input:focus, select:focus {
+            border-color: #ffd700;
+            box-shadow: 0 0 8px #ffd700;
+            outline: none;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            font-size: 18px;
+            border: none;
+            border-radius: 4px;
+            background-color: #f0b90b;
+            color: #262626;
+            cursor: pointer;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        button:hover {
+            background-color: #ffd700;
+            color: #1a1a1a;
+        }
+        button:active {
+            transform: translateY(2px);
+        }
+        .container h3 {
+            color: #f0b90b;
+            text-align: center;
+            margin-bottom: 15px;
+            padding-bottom: 5px;
+            border-bottom: 2px solid #f0b90b;
+        }
+        .container p {
+            font-size: 16px;
+            color: #d9d9d9;
+            margin-bottom: 8px;
+        }
+        .container span {
+            font-weight: bold;
+            color: #f0b90b;
+        }
+        .container::after {
+            /*content: "\f379"; !* FontAwesome Bitcoin icon *!*/
+            /*font-family: "Font Awesome 5 Free",serif;*/
+            font-weight: 900;
+            position: absolute;
+            right: 10px;
+            top: 10px;
+            font-size: 24px;
+            color: #f0b90b;
+        }
+        .fab.fa-bitcoin {
+            color: #f0b90b; /* 设置图标颜色与比特币金色相符 */
+            margin-left: 10px; /* 在图标和文字之间添加一些空间 */
+            font-size: 2em;
+        }
+        /* 添加一个hover效果到容器，使其更加有互动感 */
+        .container:hover {
+            box-shadow: 0 0 25px rgba(240, 185, 11, 0.8);
+        }
+
+        /* 标题中的比特币图标增大并添加动画，使其更引人注目 */
+        .container h2 .fa-bitcoin,
+        .container h3 .fa-bitcoin {
+            font-size: 2.5em; /* 将图标放大 */
+            margin-left: 0.5em;
+            vertical-align: middle;
+            animation: spin 3s linear infinite; /* 创建旋转动画 */
+        }
+
+        /* 弹窗的基本样式 */
+        .alert {
+            display: none; /* 默认不显示 */
+            position: fixed; /* 固定位置 */
+            top: 20px; /* 距离顶部20px */
+            left: 50%; /* 水平居中 */
+            transform: translateX(-50%); /* 确保居中 */
+            min-width: auto; /* 增大弹窗宽度以适应内容 */
+            padding: 5px; /* 增加内边距 */
+            background-color: #333; /* 背景颜色 */
+            color: #f0b90b; /* 文本颜色 */
+            border: 1px solid #f0b90b; /* 边框 */
+            border-radius: 10px; /* 边框圆角 */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5); /* 阴影效果 */
+            text-align: center; /* 文本居中 */
+            z-index: 1001; /* 确保在最上层 */
+        }
+
+        /* 弹窗显示动画 */
+        .alert-show {
+            display: block;
+            animation: fadeIn 1s ease-out forwards; /* 逐渐淡入动画 */
+        }
+
+        /* 淡入并向下滑动的动画 */
+        @keyframes fadeAndSlideDown {
+            0% {
+                opacity: 0;
+                transform: translateX(-50%) translateY(-20px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+
+        /* 弹窗消失动画 */
+        @keyframes fadeOut {
+
+            0% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+        /* 金币样式 */
+        .alert .coin {
+            font-size: 3.5rem; /* 图标大小 */
+            vertical-align: middle; /* 垂直居中 */
+            animation: bounce 2s infinite ease-in-out; /* 添加跳动动画 */
+            padding-right: 30px; /* 右边距，避免与文字重叠 */
+        }
+        .close-alert {
+            position: absolute;
+            top: 10px; /* 调整位置，确保不重叠 */
+            right: 10px; /* 右上角 */
+            font-size: 3em; /* 图标大小 */
+            color: #f0b90b; /* 图标颜色 */
+            cursor: pointer; /* 鼠标手势 */
+        }
+        /* 为了无障碍访问，添加关闭按钮 */
+        .alert .close-alert {
+            position: absolute;
+            right: 20px; /* 右边距增加 */
+            top: 15px; /* 上边距保持不变 */
+            background: none;
+            border: none;
+            color: #f0b90b;
+            font-size: 1.2em; /* 字体大小适当调整 */
+            cursor: pointer;
+        }
+
+        /* 关闭按钮悬停效果 */
+        .alert .close-alert:hover {
+            color: #ffd700;
+        }
+
+        /* 提升结果显示区域的美观性和辨识度 */
+        #resultsCard span, #resultsCard2 span {
+            display: inline-block;
+            background-color: #333;
+            padding: 0.2em 0.6em;
+            margin-right: 0.5em;
+            border-radius: 0.25em;
+        }
+
+        /* 为结果文字添加hover效果 */
+        #resultsCard p:hover span, #resultsCard2 p:hover span {
+            background-color: #f0b90b;
+            color: #262626;
+            box-shadow: 0 0 8px #f0b90b;
+        }
+        /* 增强表单交互 */
+        input[type="text"], input[type="number"], input[type="date"], select {
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+        input[type="text"]:hover, input[type="number"]:hover, input[type="date"]:hover, select:hover {
+            background-color: #333; /* 鼠标悬停时加深背景色 */
+            transform: translateY(-2px); /* 轻微上升效果 */
+        }
+
+        /* 提升按钮动态效果 */
+        button {
+            transition: box-shadow 0.3s ease, transform 0.2s ease;
+        }
+
+        button:hover {
+            box-shadow: 0 4px 12px #ffd700; /* 鼠标悬停时增加阴影效果 */
+        }
+
+        /* 增加全局动画效果 */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* 应用全局动画到所有容器 */
+        .container {
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        /* 针对小屏幕优化布局 */
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column;
+            }
+            .container {
+                width: 90%; /* 使容器在小屏幕上宽度更大 */
+                margin-top: 20px;
+                margin-bottom: 20px;
+            }
+        }
+
+
+        /* 添加一些金属质感的背景渐变效果 */
+        .container {
+            background: linear-gradient(145deg, #383838, #1d1d1d);
+            border: 1px solid #f0b90b;
+        }
+
+        /* 给按钮增加一些动态渐变效果，模拟金属光泽 */
+        button {
+            background-image: linear-gradient(-45deg, #f6e27a, #f0b90b 50%, #b88a0a);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        /* 在hover时改变按钮的背景色，增加互动感 */
+        button:hover {
+            background-image: linear-gradient(-45deg, #f6e27a, #ffd700 50%, #e5c100);
+        }
+
+        /* 增加容器hover效果，使其更加突出 */
+        .container:hover {
+            box-shadow: 0 0 25px rgba(240, 185, 11, 0.6);
+        }
+
+        /* 标题字体更改，增加品牌特色 */
+        h2, h3 {
+            font-weight: 700;
+            text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.5);
+        }
+
+        /* 结果和表单文本的样式更改，提高清晰度 */
+        .container p, .container label, .container input, .container select {
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+        }
+
+        /* 增加比特币图标的glow效果 */
+        .fab.fa-bitcoin {
+            text-shadow: 0 0 5px #ffd700;
+            display: inline-block;
+            vertical-align: middle;
+            animation: bounce 2s infinite ease-in-out;
+            margin-right: 10px; /* 增加右侧间距以避免与文本重叠 */
+        }
+        /* 逐渐淡入动画定义 */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+
+        /* 比特币图标跳动动画 */
+        @keyframes bounce {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+        /* 将跳动动画应用于图标 */
+        .fab.fa-bitcoin {
+            animation: bounce 2s infinite ease-in-out;
+        }
+
+        /* 添加一个加载动画，使网页加载时更平滑 */
+        @keyframes loadIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* 将加载动画应用于容器 */
+        .container {
+            animation: loadIn 0.5s ease-out backwards;
+        }
+        #alertBox {
+            display: none; /* 默认不显示 */
+            position: fixed; /* 固定位置 */
+            top: 20px; /* 距离顶部20px */
+            left: 50%; /* 水平居中 */
+            transform: translateX(-50%); /* 确保居中 */
+            z-index: 1000; /* 确保在顶部 */
+            padding: 10px 20px;
+            color: #262626;
+            background-color: #f0b90b;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2>联合挖矿模型计算工具 <i class="fab fa-bitcoin"></i></h2>
+    <form id="createBasicForm">
+        <div class="form-group">
+            <label for="minerryQty">Miner Qty 矿机数量</label>
+            <input type="number" id="minerryQty" name="minerryQty" required>
+        </div>
+        <div class="form-group">
+            <label for="electricityPrice">Electricity Price 矿场电价</label>
+            <input type="text" id="electricityPrice" name="electricityPrice" required>
+        </div>
+        <div class="form-group">
+            <label for="capacity">Capacity 矿场负荷</label>
+            <input type="text" id="capacity" name="capacity" required>
+        </div>
+        <div class="form-group">
+            <label for="deploymentDate">Deployment Date 部署日期</label>
+            <input type="date" id="deploymentDate" name="deploymentDate" required>
+        </div>
+        <div class="form-group">
+            <label for="days">Days 天数</label>
+            <input type="number" id="days" name="days" required>
+        </div>
+        <div class="form-group">
+            <label for="totalNetworkComputingPower"> Total Network Computing Power 全网总算力</label>
+            <input type="text" id="totalNetworkComputingPower" name="totalNetworkComputingPower" required>
+        </div>
+        <div class="form-group">
+            <label for="btcOutcomePerTh">BTC Outcome per TH BTC每日产出</label>
+            <input type="text" id="btcOutcomePerTh" name="btcOutcomePerTh" required>
+        </div>
+        <div class="form-group">
+            <label for="btcPrice">BTC Price BTC价格(美元)</label>
+            <input type="text" id="btcPrice" name="btcPrice" required>
+        </div>
+        <div class="form-group">
+            <label for="perTOutcome">Per T Outcome 每T的产出</label>
+            <input type="text" id="perTOutcome" name="perTOutcome" required>
+        </div>
+        <div class="form-group">
+            <label for="profitSharingCan">Profit Sharing (CAN) 利润分成（CAN%）</label>
+            <input type="text" id="profitSharingCan" name="profitSharingCan" required>
+        </div>
+        <div class="form-group">
+            <label for="profitSharingPartner">Profit Sharing (Partner) 利润分成（合作伙伴%）</label>
+            <input type="text" id="profitSharingPartner" name="profitSharingPartner" required>
+        </div>
+        <div class="form-group">
+            <button type="submit">保存数据</button>
+        </div>
+    </form>
+    <h2>矿机算力/T价格填充</h2>
+    <form id="basicDataForm">
+        <div class="form-group">
+            <label for="model">矿机算力/台(T)</label>
+            <input type="number" id="model" name="model" required>
+        </div>
+
+        <div class="form-group">
+            <label for="electricityPrice">矿机每T价格(U/T)</label>
+            <input type="number" id="electricityPrice1" name="electricityPrice" step="0.01" required>
+        </div>
+        <div class="form-group">
+            <label for="facilityCAPEX">Facility CAPEX 矿场合作基建成本</label>
+            <input type="text" id="facilityCAPEX" name="facilityCAPEX" required>
+        </div>
+
+        <div class="form-group">
+            <button type="button" id="calculateButton">计算</button>
+        </div>
+    </form>
+</div>
+
+<div class="container" id="resultsCard">
+    <h3>CAN计算结果</h3>
+    <p>Electricity Cost per TH(每TH的电力成本): <span id="electricityCostPerTH"></span></p>
+    <p>Profit per TH(每TH的利润): <span id="profitPerTH"></span></p>
+    <p>Profit of CAN per TH(CAN每TH的利润): <span id="profitOfCanPerTH"></span></p>
+    <p>CAN Profit(CAN利润): <span id="canProfit"></span></p>
+    <p>Accumulative CAN Profit(累积CAN利润): <span id="accumulativeCanProfit"></span></p>
+    <p>Miner CAPEX Cost(矿机资本支出成本): <span id="minerCAPEXCost"></span></p>
+    <p>Total Computing Power(总计算能力): <span id="totalComputingPower"></span></p>
+    <p>Total Cost per TH(每TH的总成本): <span id="totalCostPerTH"></span></p>
+    <p>Return Days(回本天数): <span id="returnDays"></span></p>
+    <p>CAN Total Investment(CAN总投资): <span id="canTotalInvestment"></span></p>
+</div>
+
+<div class="container" id="resultsCard2">
+    <h3>Partner计算结果</h3>
+    <p>Electricity Cost per TH(每TH的电力成本): <span id="electricityCostPerTH2"></span></p>
+    <p>Profit per TH: <span id="profitPerTH2"></span></p>
+    <p>Profit of CAN per TH(合作伙伴每TH的利润): <span id="profitOfCanPerTH2"></span></p>
+    <p>Partner Profit(合作伙伴利润): <span id="PartnerProfit2"></span></p>
+    <p>Accumulative Partner Profit(累积合作伙伴利润): <span id="AccumulativePartneProfit2"></span></p>
+    <p>Facility CAPEX(设施资本支出): <span id="FacilityCAPEX2"></span></p>
+    <p>Total Computing Power(总计算能力): <span id="TotalComputingPower2"></span></p>
+    <p>Total Cost per TH(每TH的总成本): <span id="TotalCostperTH2"></span></p>
+    <p>Return Days(回本天数): <span id="ReturnDays2"></span></p>
+    <p>Partner Total Investment(合作伙伴总投资): <span id="PartnerTotalInvestment2"></span></p>
+</div>
+
+<div class="alert" id="alert">
+    <button class="close-alert" onclick="closeAlert()">&times;</button>
+    <i class="fab fa-bitcoin coin"></i>
+    计算完毕
+</div>
+<script>
+    // function showAlert(message) {
+    //     var alertBox = document.getElementById('alertBox');
+    //     if (!alertBox) {
+    //         alertBox = document.createElement('div');
+    //         alertBox.id = 'alertBox';
+    //         document.body.appendChild(alertBox);
+    //     }
+    //     alertBox.textContent = message;
+    //     alertBox.style.display = 'block'; // 显示提示框
+    //
+    //     // 设置3秒后提示框消失
+    //     setTimeout(function() {
+    //         alertBox.style.display = 'none';
+    //     }, 3000);
+    // }
+
+    // 显示提示框
+    function showAlert() {
+        var alertBox = document.getElementById('alert');
+        alertBox.classList.add('alert-show');
+        // 3秒后隐藏提示框
+        setTimeout(function() {
+            alertBox.classList.remove('alert-show');
+        }, 3000);
+    }
+
+    // 关闭提示框
+    function closeAlert() {
+        var alertBox = document.getElementById('alert');
+        alertBox.style.display = 'none'; // 隐藏弹窗
+    }
+
+    document.getElementById('createBasicForm').addEventListener('submit', function(e){
+        e.preventDefault();
+        var basicdata = {
+            minerryQty: document.getElementById('minerryQty').value,
+            electricityPrice: document.getElementById('electricityPrice').value,
+            capacity: document.getElementById('capacity').value,
+            deploymentDate: document.getElementById('deploymentDate').value,
+            days: document.getElementById('days').value,
+            totalNetworkComputingPower: document.getElementById('totalNetworkComputingPower').value,
+            btcOutcomePerTh: document.getElementById('btcOutcomePerTh').value,
+            btcPrice: document.getElementById('btcPrice').value,
+            perTOutcome: document.getElementById('perTOutcome').value,
+            profitSharingCan: document.getElementById('profitSharingCan').value,
+            profitSharingPartner: document.getElementById('profitSharingPartner').value
+        };
+        fetch('http://localhost:9000/basicdata/basicdata/createBasic', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(basicdata)
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('基础数据创建成功');
+                } else {
+                    alert('创建失败，请重试');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('创建失败，网络错误');
+            });
+    });
+    /*计算逻辑*/
+    document.getElementById('calculateButton').addEventListener('click', function() {
+        // 读取输入的值
+        var capacity = document.getElementById('capacity').value;
+        var electricityPrice = document.getElementById('electricityPrice').value; // 新增的矿机电价输入
+        var electricityPriceDown = document.getElementById('electricityPrice1').value; // 新增的矿机电价输入
+        var minerQty = document.getElementById('minerryQty').value;
+        var model = document.getElementById('model').value; // 新增的机器算力输入
+        var perTOutcome = document.getElementById('perTOutcome').value;
+        var profitSharingCan = document.getElementById('profitSharingCan').value;
+        var days = document.getElementById('days').value;
+
+        var capacityNum = parseFloat(capacity);
+        var electricityPriceNum = parseFloat(electricityPrice);
+        var electricityPriceDownNum = parseFloat(electricityPriceDown);
+        var minerQtyNum = parseInt(minerQty, 10);
+        var perTOutcomeNum = parseFloat(perTOutcome);
+        var profitSharingCanNum = parseFloat(profitSharingCan);
+        var daysNum = parseInt(days, 10);
+        var modelNum = parseFloat(model);
+
+        var electricityCostPerTH = capacityNum * 24 * (electricityPriceNum / minerQtyNum / modelNum);
+        var profitPerTH = perTOutcomeNum - electricityCostPerTH;
+        var profitOfCanPerTH = profitPerTH * profitSharingCanNum;
+        var canProfit = profitOfCanPerTH * daysNum;
+        var accumulativeCanProfit = canProfit;
+        var minerCAPEXCost = modelNum * minerQtyNum * electricityPriceDownNum;
+        var totalComputingPower = minerQtyNum * modelNum;
+        var totalCostPerTH = totalComputingPower === 0 ? 0 : minerCAPEXCost / totalComputingPower;
+        var returnDays =totalCostPerTH <accumulativeCanProfit ? (totalCostPerTH /profitOfCanPerTH) : "有问题！";
+
+        // 显示计算结果
+        document.getElementById('electricityCostPerTH').textContent = electricityCostPerTH.toFixed(3);
+        document.getElementById('profitPerTH').textContent = profitPerTH.toFixed(3);
+        document.getElementById('profitOfCanPerTH').textContent = profitOfCanPerTH.toFixed(3);
+        document.getElementById('canProfit').textContent = canProfit.toFixed(3);
+        document.getElementById('accumulativeCanProfit').textContent = accumulativeCanProfit.toFixed(3);
+        document.getElementById('minerCAPEXCost').textContent = minerCAPEXCost.toFixed(3);
+        document.getElementById('totalComputingPower').textContent = totalComputingPower;
+        document.getElementById('totalCostPerTH').textContent = totalCostPerTH.toFixed(3);
+        document.getElementById('returnDays').textContent = returnDays.toFixed(2);
+        document.getElementById('canTotalInvestment').textContent = minerCAPEXCost.toFixed(3);
+
+        /*===========*/
+
+        var minerQty2 = parseFloat(document.getElementById('minerryQty').value);
+        var electricityPrice2 = parseFloat(document.getElementById('electricityPrice').value);
+        var capacity2 = parseFloat(document.getElementById('capacity').value);
+        var days2 = parseInt(document.getElementById('days').value, 10);
+        var perTOutcome2 = parseFloat(document.getElementById('perTOutcome').value);
+        var profitSharingCan2 = parseFloat(document.getElementById('profitSharingCan').value);
+        var model2 = parseFloat(document.getElementById('model').value); // 确保有名为 'model' 的输入字段
+
+        var electricityCostPerTH2 = (capacity2 * 24 * (electricityPrice2 / (minerQty2 * model2))).toFixed(6);
+        var profitPerTH2 = (perTOutcome2 - parseFloat(electricityCostPerTH2)).toFixed(6);
+        var profitOfPartnerPerTH2 = (parseFloat(profitPerTH2) * (1 - profitSharingCan2)).toFixed(6);
+        var partnerProfit2 = (parseFloat(profitOfPartnerPerTH2) * days2).toFixed(6);
+        var accumulativePartnerProfit2 = partnerProfit2 ;
+        var facilityCAPEX2 = document.getElementById('facilityCAPEX').value;
+        facilityCAPEX2 = parseFloat(facilityCAPEX2);
+        var totalComputingPower2 = (minerQty2 * model2).toFixed(6);
+        var totalCostPerTH2 = (facilityCAPEX2 / parseFloat(totalComputingPower2)).toFixed(6);
+        // console.log("计算过程",parseFloat(totalCostPerTH2) ,"/", parseFloat(profitOfPartnerPerTH2) ,"=" , parseFloat(totalCostPerTH2) / parseFloat(profitOfPartnerPerTH2));
+        var returnDays2 = parseFloat(totalCostPerTH2) < parseFloat(accumulativePartnerProfit2) ? (parseFloat(totalCostPerTH2) / parseFloat(profitOfPartnerPerTH2)).toFixed(6) : "有问题！";
+        var partnerTotalInvestment2 = facilityCAPEX2.toFixed(6);
+
+        document.getElementById('electricityCostPerTH2').textContent = parseFloat(electricityCostPerTH2).toFixed(3);
+        document.getElementById('profitPerTH2').textContent = parseFloat(profitPerTH2).toFixed(3);
+        document.getElementById('profitOfCanPerTH2').textContent = parseFloat(profitOfPartnerPerTH2).toFixed(3);
+        document.getElementById('PartnerProfit2').textContent = parseFloat(partnerProfit2).toFixed(3);
+        document.getElementById('AccumulativePartneProfit2').textContent = parseFloat(accumulativePartnerProfit2).toFixed(3);
+        document.getElementById('FacilityCAPEX2').textContent = facilityCAPEX2.toFixed(3);
+        document.getElementById('TotalComputingPower2').textContent = parseFloat(totalComputingPower2).toFixed(3);
+        document.getElementById('TotalCostperTH2').textContent = parseFloat(totalCostPerTH2).toFixed(3);
+        document.getElementById('ReturnDays2').textContent = returnDays2;
+        document.getElementById('PartnerTotalInvestment2').textContent = parseFloat(partnerTotalInvestment2).toFixed(3);
+
+        var alertBox = document.getElementById('alert');
+        alertBox.classList.add('alert-show'); // 显示弹窗
+        setTimeout(function() { // 3秒后自动关闭弹窗
+            alertBox.classList.remove('alert-show');
+        }, 3000);
+        // showAlert('计算完毕');
+    });
+</script>
+</body>
+</html>
